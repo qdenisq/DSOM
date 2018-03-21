@@ -29,7 +29,7 @@ class DeepSom(object):
 
     def train(self, data=None, epochs=10, radius0=0, radiusN=1,
               radiuscooling="linear",
-              scale0=0.1, scaleN=0.01, scalecooling="linear"):
+              scale0=0.1, scaleN=0.01, scalecooling="linear", verbose=0):
 
         if data is None and "som_0" not in self._layers_input:
             raise Exception("The input data is missing")
@@ -37,8 +37,11 @@ class DeepSom(object):
         outputs = {}
         self._layers_input["som_0"] = data
         for i in range(self._n_layers):
+            if verbose:
+                print("training {} layer out of {}".format(i + 1, self._n_layers))
             layer_name = "som_{}".format(i)
             som = self._layers[layer_name]
+            som._verbose = verbose
             # train
             som.train(self._layers_input[layer_name], epochs, radius0, radiusN, radiuscooling, scale0, scaleN,
                       scalecooling)
@@ -58,8 +61,8 @@ class DeepSom(object):
             # reshape activation according to the input shape of the next layer
             next_layer_name = "som_{}".format(i + 1)
             n_input_dim = self._layers[next_layer_name].n_dim
-            n_samples = len(bmus) % n_input_dim
-            bmus = bmus.reshape(n_input_dim, n_samples)
+            n_samples = len(bmus) // n_input_dim
+            bmus = bmus.reshape(n_samples, n_input_dim)
             # assign activation to the next layer input data
             self._layers_input[next_layer_name] = bmus
-        
+
